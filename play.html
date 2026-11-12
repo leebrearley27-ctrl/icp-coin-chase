@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#06030f">
+<title>ICP Coin Chase — play</title>
+<meta name="description" content="Arcade maze chase: collect ICP coins. A short fan-made game promoting ICP and Caffeine.ai.">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#06030f;color:#fff;overflow:hidden;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#wrap{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#stage{position:relative;width:480px;height:480px;--u:4.8px;overflow:hidden;background:#06030f}
+#game{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;gap:calc(var(--u)*1.6);padding:calc(var(--u)*4);
+  background:radial-gradient(circle at 50% 40%,rgba(40,14,80,.80),rgba(6,3,15,.92) 70%);z-index:5}
+.hidden{display:none!important}
+.ov p{margin:0}
+.logo{width:calc(var(--u)*26);height:calc(var(--u)*13);filter:drop-shadow(0 0 calc(var(--u)*1.4) rgba(237,30,121,.65))}
+.ttl{margin:0;font-weight:900;letter-spacing:calc(var(--u)*.5);line-height:.95;font-size:calc(var(--u)*10.5);
+  background:linear-gradient(90deg,#29abe2,#7b5cff 30%,#ed1e79 60%,#f15a24 80%,#fbb03b);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 calc(var(--u)*1) rgba(123,92,255,.6))}
+.ttl small{display:block;font-size:.42em;letter-spacing:calc(var(--u)*1.6);margin-top:calc(var(--u)*.8)}
+.sub{font-size:calc(var(--u)*4.2);color:#ffd76a;font-weight:800;letter-spacing:calc(var(--u)*.3)}
+.row{display:flex;gap:calc(var(--u)*2.4);flex-wrap:wrap;justify-content:center}
+.btn{min-height:44px;min-width:44px;padding:calc(var(--u)*1.8) calc(var(--u)*4.4);border-radius:calc(var(--u)*2.4);
+  font:900 calc(var(--u)*4.2)/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:calc(var(--u)*.3);
+  color:#fff;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.35);cursor:pointer;touch-action:manipulation}
+.btn:active{transform:scale(.96)}
+.btn.primary{background:linear-gradient(90deg,#7b5cff,#ed1e79 55%,#f15a24);border-color:#ffd0e6;
+  box-shadow:0 0 calc(var(--u)*3) rgba(237,30,121,.65)}
+.btn:focus-visible{outline:3px solid #ffd76a;outline-offset:2px}
+.help{font-size:calc(var(--u)*3.2);color:#cfc6ff;line-height:1.45}
+.help b{color:#ffb36b}
+.caf{display:flex;align-items:center;gap:calc(var(--u)*1.4);font-size:calc(var(--u)*3.3);color:#ffe2c4}
+.caf svg{width:calc(var(--u)*6);height:calc(var(--u)*6)}
+.best{font:800 calc(var(--u)*3.4)/1 ui-monospace,Menlo,Consolas,monospace;color:#8ef6ff;letter-spacing:calc(var(--u)*.4)}
+.fine{font-size:calc(var(--u)*2.4);color:#8f86b5;max-width:92%}
+#overTitle{margin:0;font-size:calc(var(--u)*9);font-weight:900;letter-spacing:calc(var(--u)*.6);color:#ff4f8b;
+  text-shadow:0 0 calc(var(--u)*2) rgba(255,46,99,.8)}
+.big{font:900 calc(var(--u)*9)/1 ui-monospace,Menlo,Consolas,monospace;color:#ffd76a;text-shadow:0 0 calc(var(--u)*2) rgba(251,176,59,.7)}
+#newHi{color:#7dffb5;font-weight:900;font-size:calc(var(--u)*3.6)}
+.links{display:flex;flex-direction:column;gap:calc(var(--u)*1.2);width:min(100%,calc(var(--u)*84))}
+.lnk{display:flex;align-items:center;justify-content:center;min-height:44px;padding:calc(var(--u)*1.2) calc(var(--u)*2);
+  border-radius:calc(var(--u)*2);font-weight:800;font-size:calc(var(--u)*3.3);color:#fff;text-decoration:none;
+  border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06)}
+.lnk.caf2{background:linear-gradient(90deg,rgba(241,90,36,.35),rgba(251,176,59,.25));border-color:#ffb36b}
+.lnk.icp{background:linear-gradient(90deg,rgba(41,171,226,.30),rgba(123,92,255,.30));border-color:#8f7dff}
+.lnk.yt{background:rgba(255,0,51,.18);border-color:#ff5577}
+#hudBtns{position:absolute;top:0;right:0;display:flex;z-index:8}
+.hb{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:none;border:0;color:#fff;
+  font-size:20px;cursor:pointer;opacity:.85;touch-action:manipulation;padding:0}
+.hb svg{width:22px;height:22px}
+#dpad{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);z-index:7;touch-action:none}
+#dpad.below{position:relative;width:156px;height:156px;margin-top:8px}
+#dpad.overlay{position:absolute;left:calc(var(--u)*2);bottom:calc(var(--u)*2);width:calc(var(--u)*30);height:calc(var(--u)*30);
+  min-width:132px;min-height:132px;opacity:.42}
+#dpad.hidden{display:none}
+#dpad button{border:2px solid rgba(160,140,255,.55);background:rgba(60,30,120,.45);color:#fff;border-radius:12px;font-size:20px;
+  touch-action:none;padding:0;min-width:44px;min-height:44px}
+#dpad button.on{background:rgba(237,30,121,.6)}
+#dpad .u{grid-column:2;grid-row:1}#dpad .l{grid-column:1;grid-row:2}#dpad .r{grid-column:3;grid-row:2}#dpad .d{grid-column:2;grid-row:3}
+noscript{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;text-align:center}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <canvas id="game" width="480" height="480" aria-label="ICP Coin Chase game"></canvas>
+
+    <div id="hudBtns">
+      <button class="hb" id="btnMute" aria-label="Toggle sound" title="Sound (M)"></button>
+    </div>
+
+    <div id="title" class="ov">
+      <svg class="logo" viewBox="0 0 100 50" aria-hidden="true">
+        <defs><linearGradient id="ig" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#29abe2"/><stop offset=".42" stop-color="#522785"/>
+          <stop offset=".58" stop-color="#ed1e79"/><stop offset=".8" stop-color="#f15a24"/><stop offset="1" stop-color="#fbb03b"/></linearGradient></defs>
+        <path d="M50 25 C59 13 88 9 88 25 C88 41 59 37 50 25 C41 13 12 9 12 25 C12 41 41 37 50 25 Z" fill="none" stroke="url(#ig)" stroke-width="7.5" stroke-linecap="round"/>
+        <path d="M50 25 C59 13 88 9 88 25 C88 41 59 37 50 25 C41 13 12 9 12 25 C12 41 41 37 50 25 Z" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.6"/>
+      </svg>
+      <h1 class="ttl">ICP<small>COIN CHASE</small></h1>
+      <p class="sub">Collect the ICP coins</p>
+      <div class="row">
+        <button id="btnPlay" class="btn primary">▶ PLAY</button>
+        <button id="btnMute2" class="btn">SOUND ON</button>
+        <button id="btnDpad" class="btn hidden">D-PAD: AUTO</button>
+      </div>
+      <p class="help" id="helpText">Arrow keys / WASD to move · P to pause<br>Grab a <b>Caffeine</b> cup to chase the bugs</p>
+      <div class="caf">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M14 6c-2 3 2 4 0 7M20 4c-2 3 2 5 0 8M26 6c-2 3 2 4 0 7" stroke="#ffd7b0" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M7 16h22l-2.5 17a4 4 0 0 1-4 3.4h-9a4 4 0 0 1-4-3.4z" fill="#f15a24"/><path d="M8 20h20" stroke="#fff" stroke-width="2.4"/><path d="M29 19h3a4 4 0 0 1 0 8h-4" stroke="#f15a24" stroke-width="3" fill="none"/></svg>
+        <span>Fuelled by <b>Caffeine.ai</b> · Built for <b>ICP</b></span>
+      </div>
+      <p class="best" id="titleBest">BEST 0</p>
+      <p class="fine">Fan-made game. Not an official DFINITY or Caffeine product. Not financial advice.</p>
+    </div>
+
+    <div id="over" class="ov hidden">
+      <h2 id="overTitle">GAME OVER</h2>
+      <p class="big" id="overScore">0</p>
+      <p class="best" id="overBest">BEST 0</p>
+      <p id="newHi" class="hidden">NEW HIGH SCORE!</p>
+      <button id="btnAgain" class="btn primary">↻ PLAY AGAIN</button>
+      <div class="links">
+        <a class="lnk caf2" href="https://caffeine.ai" target="_blank" rel="noopener">☕&nbsp; Build an app by chatting · Caffeine.ai ↗</a>
+        <a class="lnk icp" href="https://internetcomputer.org" target="_blank" rel="noopener">∞&nbsp; Learn about ICP · internetcomputer.org ↗</a>
+        <a class="lnk yt" href="https://www.youtube.com/watch?v=XzVl9DRYb_A" target="_blank" rel="noopener">▶&nbsp; Watch: Paperwork, Not a Launch — Ep. 001 ↗</a>
+      </div>
+      <p class="fine">Fan-made game. Not an official DFINITY or Caffeine product. Not financial advice.</p>
+    </div>
+
+    <div id="dpad" class="hidden" aria-hidden="true">
+      <button class="u" data-d="0">▲</button><button class="l" data-d="1">◀</button>
+      <button class="r" data-d="3">▶</button><button class="d" data-d="2">▼</button>
+    </div>
+  </div>
+</div>
+<noscript>ICP Coin Chase needs JavaScript to play.</noscript>
+<script>
+(() => {
+'use strict';
+/* ICP Coin Chase — original maze-chase game. Vanilla JS, no libraries.
+   Fan-made; not affiliated with DFINITY or Caffeine. */
+
+// ---------- Maze (original 19x19 layout) ----------
+// # wall  . coin  o caffeine cup  - hub door  G hub  P player start
+const MAZE = [
+"###################",
+"#o...#.......#...o#",
+"#.##.#.##.##.#.##.#",
+"#.#.....#.#.....#.#",
+"#.#.###.#.#.###.#.#",
+"#.................#",
+"#.##.#.##-##.#.##.#",
+"#....#.#GGG#.#....#",
+"##.#.#.#GGG#.#.#.##",
+"#..#...#####...#..#",
+"#.###.#.....#.###.#",
+"#.....#.###.#.....#",
+"#.#.#.#.....#.#.#.#",
+"#.#...#.###.#...#.#",
+"#.###.#..#..#.###.#",
+"#o.......P.......o#",
+"#.##.###.#.###.##.#",
+"#........#........#",
+"###################"];
+const COLS = 19, ROWS = 19, T = 24, OX = 24, OY = 42, LW = 504;
+const DIRS = [{x:0,y:-1},{x:-1,y:0},{x:0,y:1},{x:1,y:0}]; // up,left,down,right
+const NONE = {x:0,y:0};
+const START = {x:9,y:15}, EXIT = {x:9,y:5}, HUB = {x:9,y:7};
+const WALL_COLORS = ['#7b5cff','#29abe2','#ed1e79','#22d3a6','#f15a24','#fbb03b'];
+const TIPS = ['Tip: build an app just by chatting at caffeine.ai',
+              'ICP: apps that run fully on-chain',
+              'Caffeine.ai — describe it, it builds it',
+              'internetcomputer.org — learn about ICP'];
+
+const $ = id => document.getElementById(id);
+const stage = $('stage'), cv = $('game'), ctx = cv.getContext('2d', {alpha:false});
+const dpad = $('dpad');
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+};
+const params = new URLSearchParams(location.search);
+const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+let hi = parseInt(store.get('icpcc.hi', '0'), 10) || 0;
+let muted = store.get('icpcc.muted', '0') === '1';
+let dpadPref = store.get('icpcc.dpad', 'auto'); // auto | on | off
+
+// ---------- Layout / scaling ----------
+let S = 480, K = 1;
+function layout(){
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const wantPad = isTouch && dpadPref !== 'off';
+  const below = wantPad && (vh - vw) >= 150;
+  S = Math.max(160, Math.floor(Math.min(vw, below ? vh - 170 : vh)));
+  stage.style.width = stage.style.height = S + 'px';
+  stage.style.setProperty('--u', (S / 100) + 'px');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  cv.width = cv.height = Math.round(S * dpr);
+  K = cv.width / LW;
+  if (below) { dpad.className = 'below'; $('wrap').appendChild(dpad); }
+  else if (wantPad && dpadPref === 'on') { dpad.className = 'overlay'; stage.appendChild(dpad); }
+  else { dpad.className = 'hidden'; }
+  buildSprites(); buildMazeLayer();
+}
+
+// ---------- Drawing helpers ----------
+function infPath(g, w){ // original lemniscate-style infinity, centred at 0,0
+  const a = w / 2, h = w * 0.34;
+  g.beginPath(); g.moveTo(0, 0);
+  g.bezierCurveTo(a*0.36, -h, a, -h, a, 0);
+  g.bezierCurveTo(a, h, a*0.36, h, 0, 0);
+  g.bezierCurveTo(-a*0.36, -h, -a, -h, -a, 0);
+  g.bezierCurveTo(-a, h, -a*0.36, h, 0, 0);
+  g.closePath();
+}
+function icpGrad(g, w){
+  const gr = g.createLinearGradient(-w/2, 0, w/2, 0);
+  gr.addColorStop(0, '#29abe2'); gr.addColorStop(0.42, '#7b3fe4');
+  gr.addColorStop(0.58, '#ed1e79'); gr.addColorStop(0.8, '#f15a24'); gr.addColorStop(1, '#fbb03b');
+  return gr;
+}
+function drawCup(g, s){ // simple original coffee-cup mark, centred, size s
+  const u = s / 40; g.save(); g.scale(u, u); g.translate(-20, -20);
+  g.lineCap = 'round'; g.strokeStyle = '#ffd7b0'; g.lineWidth = 2.2;
+  g.beginPath(); g.moveTo(14,6); g.quadraticCurveTo(11,9,14,12); g.moveTo(20,4); g.quadraticCurveTo(17,8,20,12);
+  g.moveTo(26,6); g.quadraticCurveTo(23,9,26,12); g.stroke();
+  g.fillStyle = '#f15a24';
+  g.beginPath(); g.moveTo(7,16); g.lineTo(29,16); g.lineTo(26.5,33); g.quadraticCurveTo(26,36.4,22.5,36.4);
+  g.lineTo(13.5,36.4); g.quadraticCurveTo(10,36.4,9.5,33); g.closePath(); g.fill();
+  g.strokeStyle = '#fff'; g.lineWidth = 2.6; g.beginPath(); g.moveTo(8.4,21); g.lineTo(27.6,21); g.stroke();
+  g.strokeStyle = '#f15a24'; g.lineWidth = 3.2; g.beginPath(); g.moveTo(28.5,19.5); g.lineTo(31.5,19.5);
+  g.arc(31.5,23.5,4,-Math.PI/2,Math.PI/2); g.lineTo(28,27.5); g.stroke();
+  g.restore();
+}
+function hexPath(g, r, rot){
+  g.beginPath();
+  for (let i = 0; i < 6; i++){ const a = rot + i * Math.PI / 3; g[i ? 'lineTo' : 'moveTo'](Math.cos(a)*r, Math.sin(a)*r); }
+  g.closePath();
+}
+
+// ---------- Sprites (pre-rendered at device resolution) ----------
+let SPR = {};
+function mk(sz, fn){
+  const c = document.createElement('canvas');
+  c.width = c.height = Math.max(2, Math.ceil(sz * K));
+  const g = c.getContext('2d'); g.scale(c.width / sz, c.height / sz); g.translate(sz/2, sz/2); fn(g);
+  return {c, sz};
+}
+function buildSprites(){
+  SPR.coin = mk(16, g => {
+    const r = 6.2;
+    const rg = g.createRadialGradient(-2, -2, 1, 0, 0, r);
+    rg.addColorStop(0, '#fff3b0'); rg.addColorStop(0.55, '#f7b733'); rg.addColorStop(1, '#a35d00');
+    g.shadowColor = 'rgba(251,176,59,.9)'; g.shadowBlur = 4;
+    g.fillStyle = rg; g.beginPath(); g.arc(0, 0, r, 0, Math.PI*2); g.fill(); g.shadowBlur = 0;
+    g.fillStyle = '#1b0d33'; g.beginPath(); g.arc(0, 0, r - 1.6, 0, Math.PI*2); g.fill();
+    g.lineWidth = 1.5; g.strokeStyle = icpGrad(g, 8); infPath(g, 8); g.stroke();
+  });
+  SPR.cup = mk(26, g => {
+    g.shadowColor = 'rgba(241,90,36,.95)'; g.shadowBlur = 8;
+    g.fillStyle = 'rgba(241,90,36,.18)'; g.beginPath(); g.arc(0, 0, 11, 0, Math.PI*2); g.fill();
+    drawCup(g, 20);
+  });
+  SPR.player = mk(36, g => {
+    g.lineJoin = g.lineCap = 'round';
+    g.shadowColor = '#ff4fa3'; g.shadowBlur = 9;
+    g.strokeStyle = icpGrad(g, 22); g.lineWidth = 5; infPath(g, 22); g.stroke();
+    g.shadowBlur = 0; g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 1.4; infPath(g, 22); g.stroke();
+  });
+  SPR.life = mk(18, g => { g.strokeStyle = icpGrad(g, 14); g.lineWidth = 3; g.lineCap = 'round'; infPath(g, 14); g.stroke(); });
+  SPR.en = {};
+  for (const d of EN_DEF) SPR.en[d.name] = enemySprite(d.color, '#120626');
+  SPR.fright = enemySprite('#3d6bff', '#0b1440');
+  SPR.flash = enemySprite('#ffffff', '#2a2a55');
+}
+function enemySprite(col, fill){
+  return mk(32, g => {
+    g.shadowColor = col; g.shadowBlur = 8;
+    g.fillStyle = fill; g.strokeStyle = col; g.lineWidth = 2.4; g.lineJoin = 'round';
+    hexPath(g, 10.5, Math.PI/6); g.fill(); g.stroke(); g.shadowBlur = 0;
+    g.globalAlpha = 0.55; g.lineWidth = 1.2; hexPath(g, 6, 0); g.stroke(); g.globalAlpha = 1;
+    // spikes = "protocol bug" antennae
+    g.strokeStyle = col; g.lineWidth = 1.6; g.lineCap = 'round';
+    for (let i = 0; i < 6; i++){ const a = i*Math.PI/3; g.beginPath();
+      g.moveTo(Math.cos(a)*10.5, Math.sin(a)*10.5); g.lineTo(Math.cos(a)*13.5, Math.sin(a)*13.5); g.stroke(); }
+  });
+}
+let mazeLayer = null, wallColor = WALL_COLORS[0];
+function isWall(x, y){ return x < 0 || y < 0 || x >= COLS || y >= ROWS || MAZE[y][x] === '#'; }
+function buildMazeLayer(){
+  const c = mazeLayer || document.createElement('canvas');
+  c.width = cv.width; c.height = cv.height; mazeLayer = c;
+  const g = c.getContext('2d'); g.setTransform(K, 0, 0, K, 0, 0);
+  const bg = g.createRadialGradient(LW/2, LW/2, 40, LW/2, LW/2, LW*0.75);
+  bg.addColorStop(0, '#140830'); bg.addColorStop(1, '#05020d');
+  g.fillStyle = bg; g.fillRect(0, 0, LW, LW);
+  // faint network dots
+  g.fillStyle = 'rgba(140,120,255,.10)';
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (!isWall(x, y)) g.fillRect(OX + x*T + T/2 - .5, OY + y*T + T/2 - .5, 1, 1);
+  // wall bodies
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (isWall(x, y)) {
+    g.fillStyle = 'rgba(30,14,70,.85)'; g.fillRect(OX + x*T, OY + y*T, T, T);
+  }
+  // neon edges
+  const segs = [];
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (isWall(x, y)) {
+    const px = OX + x*T, py = OY + y*T;
+    if (!isWall(x, y-1)) segs.push([px, py, px+T, py]);
+    if (!isWall(x, y+1)) segs.push([px, py+T, px+T, py+T]);
+    if (!isWall(x-1, y)) segs.push([px, py, px, py+T]);
+    if (!isWall(x+1, y)) segs.push([px+T, py, px+T, py+T]);
+  }
+  const stroke = (w, a, blur) => {
+    g.globalAlpha = a; g.lineWidth = w; g.strokeStyle = wallColor; g.shadowColor = wallColor; g.shadowBlur = blur;
+    g.lineCap = 'round'; g.beginPath(); for (const s of segs){ g.moveTo(s[0], s[1]); g.lineTo(s[2], s[3]); } g.stroke();
+  };
+  stroke(6, 0.22, 0); stroke(2.2, 1, 8); g.shadowBlur = 0; g.globalAlpha = 1;
+  g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = .7; g.beginPath(); for (const s of segs){ g.moveTo(s[0], s[1]); g.lineTo(s[2], s[3]); } g.stroke();
+  // outer frame
+  g.strokeStyle = wallColor; g.lineWidth = 2; g.shadowColor = wallColor; g.shadowBlur = 10;
+  g.strokeRect(OX - 3, OY - 3, COLS*T + 6, ROWS*T + 6); g.shadowBlur = 0;
+  // hub door
+  g.fillStyle = '#ff6fb5'; g.fillRect(OX + 9*T + 2, OY + 6*T + T/2 - 2, T - 4, 4);
+  g.font = '700 8px system-ui,sans-serif'; g.textAlign = 'center'; g.fillStyle = 'rgba(200,180,255,.35)';
+  g.fillText('BUG POOL', OX + 9.5*T, OY + 9*T - 1);
+}
+
+// ---------- Audio (original Web Audio blips; starts only after a user gesture) ----------
+let ac = null, master = null;
+function audioInit(){
+  try {
+    if (!ac) { const A = window.AudioContext || window.webkitAudioContext; if (!A) return;
+      ac = new A(); master = ac.createGain(); master.gain.value = muted ? 0 : 0.16; master.connect(ac.destination); }
+    if (ac.state === 'suspended') ac.resume();
+  } catch(e){ ac = null; }
+}
+function tone(f, dur, type, vol, slide, delay){
+  if (!ac || muted) return;
+  const t = ac.currentTime + (delay || 0), o = ac.createOscillator(), g = ac.createGain();
+  o.type = type || 'square'; o.frequency.setValueAtTime(f, t);
+  if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.5, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.03);
+}
+const SFX = {
+  coin(){ coinFlip = !coinFlip; tone(coinFlip ? 988 : 1319, 0.055, 'triangle', 0.35); },
+  caffeine(){ [523,659,784,1047,1319].forEach((f,i) => tone(f, 0.09, 'square', 0.25, null, i*0.05)); },
+  eat(){ tone(220, 0.22, 'sawtooth', 0.3, 1400); tone(660, 0.12, 'triangle', 0.3, null, 0.15); },
+  die(){ tone(740, 1.1, 'sawtooth', 0.32, 60); tone(370, 1.1, 'square', 0.18, 40, 0.1); },
+  start(){ [392,523,659,784,659,880,784,1047].forEach((f,i) => tone(f, 0.13, i%2 ? 'triangle' : 'square', 0.28, null, i*0.13)); },
+  clear(){ [523,784,659,1047,784,1319,1568].forEach((f,i) => tone(f, 0.11, 'triangle', 0.32, null, i*0.08)); },
+  life(){ [1047,1319,1568,2093].forEach((f,i) => tone(f, 0.08, 'square', 0.22, null, i*0.07)); }
+};
+let coinFlip = false, beatT = 0, beatI = 0;
+const BASS = [110, 110, 165, 147, 110, 131, 165, 196];
+function music(dt){
+  if (!ac || muted) return;
+  beatT -= dt; if (beatT > 0) return;
+  const caf = caffeineT > 0;
+  beatT = caf ? 0.17 : Math.max(0.22, 0.34 - (level-1)*0.015);
+  const f = BASS[beatI++ % BASS.length] * (caf ? 2 : 1);
+  tone(f, caf ? 0.12 : 0.16, caf ? 'square' : 'triangle', caf ? 0.12 : 0.16);
+}
+function setMuted(m){
+  muted = m; store.set('icpcc.muted', m ? '1' : '0');
+  if (master) master.gain.value = m ? 0 : 0.16;
+  const on = '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#fff"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+  const off = '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#fff"/><path d="M16 9l6 6M22 9l-6 6" stroke="#ff6f9a" stroke-width="2.2" stroke-linecap="round"/></svg>';
+  $('btnMute').innerHTML = m ? off : on;
+  $('btnMute2').textContent = m ? 'SOUND OFF' : 'SOUND ON';
+}
+
+// ---------- Game state ----------
+const EN_DEF = [
+  {name:'GLITCH', color:'#ff2e63', start:{x:9,y:5}, corner:{x:17,y:1}, ai:'chase',  wait:0},
+  {name:'LAG',    color:'#00e5ff', start:{x:9,y:7}, corner:{x:1,y:1},  ai:'ambush', wait:1.5},
+  {name:'FORK',   color:'#ffb300', start:{x:8,y:8}, corner:{x:1,y:17}, ai:'wander', wait:4},
+  {name:'SPAM',   color:'#b84dff', start:{x:10,y:8},corner:{x:17,y:17},ai:'patrol', wait:7}
+];
+const PATROL = [{x:1,y:1},{x:17,y:1},{x:17,y:17},{x:1,y:17}];
+let state = 'title', stateT = 0, time = 0;
+let score = 0, lives = 3, level = 1, coinsLeft = 0, coins = [], nextLife = 10000;
+let caffeineT = 0, caffeineMax = 1, combo = 0, freezeT = 0, modeT = 0, scatter = false, shake = 0, bannerT = 0;
+let player = null, enemies = [], particles = [], popups = [];
+let queued = null, lastDir = DIRS[1], paused = false, tipI = 0;
+
+function newEntity(x, y){ return {tx:x, ty:y, dir:NONE, prog:0}; }
+function posX(e){ return e.tx + e.dir.x * e.prog; }
+function posY(e){ return e.ty + e.dir.y * e.prog; }
+function cell(x, y){ return (x < 0 || y < 0 || x >= COLS || y >= ROWS) ? '#' : MAZE[y][x]; }
+function canEnter(e, x, y){
+  const c = cell(x, y);
+  if (c === '#') return false;
+  if (c === '-' || c === 'G') return !!e.isEnemy && (e.state === 'leave' || e.state === 'return' || e.state === 'home');
+  return true;
+}
+function resetCoins(){
+  coins = []; coinsLeft = 0;
+  for (let y = 0; y < ROWS; y++){ coins.push([]); for (let x = 0; x < COLS; x++){
+    const c = MAZE[y][x], v = c === '.' ? 1 : c === 'o' ? 2 : 0;
+    coins[y].push(v); if (v) coinsLeft++; } }
+}
+function resetPositions(){
+  player = newEntity(START.x, START.y); player.anim = 0; queued = DIRS[1]; lastDir = DIRS[1];
+  const f = Math.max(0.35, 1 - 0.12*(level-1));
+  enemies = EN_DEF.map((d, i) => {
+    const e = newEntity(d.start.x, d.start.y);
+    Object.assign(e, {isEnemy:true, def:d, state: d.wait === 0 ? 'chase' : 'home', wait: d.wait * f,
+      rot: Math.random()*6, patrolI: i % 4, look: DIRS[1]});
+    if (e.state === 'chase') e.dir = DIRS[1];
+    return e;
+  });
+  caffeineT = 0; combo = 0; freezeT = 0; modeT = 0; scatter = true;
+}
+function playerSpeed(){ return Math.min(8.4, 7.2 + 0.13*(level-1)) * (caffeineT > 0 ? 1.18 : 1); }
+function enemySpeed(e){
+  if (e.state === 'return') return 13;
+  if (e.state === 'leave' || e.state === 'home') return 4.5;
+  if (e.state === 'fright') return 4.2;
+  let s = Math.min(6.2 + 0.28*(level-1), Math.min(8.4, 7.2 + 0.13*(level-1)) * (level >= 8 ? 1.0 : 0.97));
+  if (e.def.ai === 'chase' && coinsLeft < 25) s *= 1.06;
+  return s;
+}
+function caffeineDur(){ return Math.max(2.2, 7 - 0.7*(level-1)); }
+
+function bfsDir(e, gx, gy){
+  if (e.tx === gx && e.ty === gy) return NONE;
+  const seen = new Uint8Array(COLS*ROWS), first = new Int8Array(COLS*ROWS).fill(-1), q = [e.tx + e.ty*COLS];
+  seen[q[0]] = 1;
+  for (let h = 0; h < q.length; h++){
+    const i = q[h], x = i % COLS, y = (i / COLS) | 0;
+    for (let d = 0; d < 4; d++){
+      const nx = x + DIRS[d].x, ny = y + DIRS[d].y, ni = nx + ny*COLS;
+      if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS || seen[ni] || !canEnter(e, nx, ny)) continue;
+      seen[ni] = 1; first[ni] = first[i] === -1 ? d : first[i];
+      if (nx === gx && ny === gy) return DIRS[first[ni]];
+      q.push(ni);
+    }
+  }
+  return NONE;
+}
+function isRev(a, b){ return a.x === -b.x && a.y === -b.y && (a.x || a.y); }
+function enemyTarget(e){
+  const d = e.def, p = {x: Math.round(posX(player)), y: Math.round(posY(player))};
+  if (scatter && d.ai !== 'wander') return d.corner;
+  if (d.ai === 'ambush'){ const L = player.dir === NONE ? lastDir : player.dir; return {x: p.x + L.x*4, y: p.y + L.y*4}; }
+  if (d.ai === 'patrol'){
+    if (Math.abs(p.x - e.tx) + Math.abs(p.y - e.ty) <= 5) return p;
+    const w = PATROL[e.patrolI];
+    if (Math.abs(w.x - e.tx) + Math.abs(w.y - e.ty) <= 2) e.patrolI = (e.patrolI + 1) % 4;
+    return PATROL[e.patrolI];
+  }
+  return p; // chase (and wander's non-random choice)
+}
+function enemyAtCenter(e){
+  if (e.state === 'leave'){
+    if (e.tx === EXIT.x && e.ty === EXIT.y) e.state = 'chase';
+    else { e.dir = bfsDir(e, EXIT.x, EXIT.y); return; }
+  }
+  if (e.state === 'return'){
+    if (e.tx === HUB.x && e.ty === HUB.y){ e.state = 'leave'; e.dir = bfsDir(e, EXIT.x, EXIT.y); return; }
+    e.dir = bfsDir(e, HUB.x, HUB.y); return;
+  }
+  const opts = [];
+  for (const d of DIRS) if (!isRev(d, e.dir) && canEnter(e, e.tx + d.x, e.ty + d.y)) opts.push(d);
+  if (!opts.length){ const r = {x:-e.dir.x, y:-e.dir.y}; e.dir = canEnter(e, e.tx + r.x, e.ty + r.y) ? DIRS.find(d => d.x === r.x && d.y === r.y) : NONE; return; }
+  if (e.state === 'fright' || state === 'title' || (e.def.ai === 'wander' && Math.random() < 0.5)){
+    e.dir = opts[(Math.random() * opts.length) | 0]; return;
+  }
+  const t = enemyTarget(e); let best = opts[0], bd = 1e9;
+  for (const d of opts){ const dx = e.tx + d.x - t.x, dy = e.ty + d.y - t.y, dd = dx*dx + dy*dy; if (dd < bd){ bd = dd; best = d; } }
+  e.dir = best;
+}
+function playerAtCenter(){
+  const p = player;
+  if (queued && canEnter(p, p.tx + queued.x, p.ty + queued.y)) p.dir = queued;
+  else if (!canEnter(p, p.tx + p.dir.x, p.ty + p.dir.y)) p.dir = NONE;
+  if (p.dir !== NONE) lastDir = p.dir;
+}
+function move(e, dist, atCenter){
+  let guard = 0;
+  while (dist > 1e-6 && guard++ < 6){
+    if (e.dir === NONE){ atCenter(e); if (e.dir === NONE) return; }
+    const rem = 1 - e.prog;
+    if (dist < rem){ e.prog += dist; return; }
+    dist -= rem; e.tx += e.dir.x; e.ty += e.dir.y; e.prog = 0;
+    atCenter(e);
+  }
+}
+function reverse(e){
+  if (e.dir === NONE) return;
+  const r = DIRS.find(d => d.x === -e.dir.x && d.y === -e.dir.y);
+  if (e.prog > 0){ e.tx += e.dir.x; e.ty += e.dir.y; e.prog = 1 - e.prog; e.dir = r; }
+  else if (canEnter(e, e.tx + r.x, e.ty + r.y)) e.dir = r;
+}
+
+// ---------- Effects ----------
+function burst(x, y, n, colors, spd, life){
+  for (let i = 0; i < n; i++){
+    if (particles.length > 260) particles.shift();
+    const a = Math.random()*Math.PI*2, v = spd*(0.35 + Math.random()*0.8);
+    particles.push({x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v, life: life*(0.6 + Math.random()*0.6), max: life,
+      c: colors[(Math.random()*colors.length) | 0], s: 1.5 + Math.random()*2});
+  }
+}
+function popup(x, y, text, color){ popups.push({x, y, text, color, t: 0}); }
+function px(tx){ return OX + (tx + 0.5) * T; }
+function py(ty){ return OY + (ty + 0.5) * T; }
+function addScore(n){
+  score += n;
+  if (score >= nextLife){ nextLife += 10000; if (lives < 6){ lives++; SFX.life(); popup(px(posX(player)), py(posY(player)) - 14, '+1 LIFE', '#7dffb5'); } }
+}
+
+// ---------- Flow ----------
+function setOverlay(id){ for (const o of ['title','over']) $(o).classList.toggle('hidden', o !== id); }
+function startGame(silent){
+  if (silent !== true) audioInit(); score = 0; lives = 3; level = 1; nextLife = 10000; tipI = 0;
+  wallColor = WALL_COLORS[0]; buildMazeLayer(); resetCoins(); resetPositions(); particles = []; popups = [];
+  setOverlay(null); toReady(true);
+}
+function toReady(first){ state = 'ready'; stateT = first ? 2.2 : 1.6; if (first) SFX.start(); }
+function nextLevel(){
+  level++; wallColor = WALL_COLORS[(level-1) % WALL_COLORS.length]; buildMazeLayer();
+  resetCoins(); resetPositions(); tipI++; toReady(false);
+}
+function gameOver(){
+  state = 'over';
+  const isHi = score > hi; if (isHi){ hi = score; store.set('icpcc.hi', String(hi)); }
+  $('overScore').textContent = score.toLocaleString();
+  $('overBest').textContent = 'BEST ' + hi.toLocaleString() + '  ·  LEVEL ' + level;
+  $('newHi').classList.toggle('hidden', !isHi || score === 0);
+  setOverlay('over'); $('btnAgain').focus({preventScroll:true});
+}
+function toTitle(){
+  state = 'title'; resetCoins(); resetPositions();
+  for (const e of enemies){ e.state = 'chase'; e.tx = 9; e.ty = 5; e.dir = DIRS[(Math.random()*4)|0]; if (!canEnter(e, e.tx+e.dir.x, e.ty+e.dir.y)) e.dir = DIRS[1]; }
+  $('titleBest').textContent = 'BEST ' + hi.toLocaleString();
+  setOverlay('title');
+}
+function setPaused(p){
+  if (p === paused) return;
+  if (p && state !== 'play' && state !== 'ready') return;
+  paused = p;
+  if (ac){ try { p ? ac.suspend() : ac.resume(); } catch(e){} }
+}
+
+// ---------- Update ----------
+function update(dt){
+  time += dt;
+  for (const q of particles){ q.x += q.vx*dt; q.y += q.vy*dt; q.vx *= 0.92; q.vy *= 0.92; q.life -= dt; }
+  particles = particles.filter(q => q.life > 0);
+  for (const q of popups) q.t += dt; popups = popups.filter(q => q.t < 1);
+  shake = Math.max(0, shake - dt*20); bannerT = Math.max(0, bannerT - dt);
+  if (paused) return;
+
+  if (state === 'title'){
+    for (const e of enemies){ e.rot += dt*1.5; move(e, dt*4.5, enemyAtCenter); }
+    return;
+  }
+  if (state === 'ready'){ stateT -= dt; for (const e of enemies) e.rot += dt*1.5; if (stateT <= 0) state = 'play'; return; }
+  if (state === 'dying'){
+    stateT -= dt;
+    if (stateT <= 0){
+      if (lives <= 0) gameOver(); else { resetPositions(); toReady(false); }
+    }
+    return;
+  }
+  if (state === 'clear'){ stateT -= dt; if (stateT <= 0) nextLevel(); return; }
+  if (state !== 'play') return;
+
+  if (freezeT > 0){ freezeT -= dt; return; }
+  music(dt);
+
+  // scatter/chase rhythm
+  modeT += dt;
+  const scatLen = level >= 5 ? 3 : 5;
+  scatter = (modeT % (scatLen + 20)) < scatLen;
+
+  if (caffeineT > 0){
+    caffeineT -= dt;
+    if (caffeineT <= 0){ caffeineT = 0; for (const e of enemies) if (e.state === 'fright') e.state = 'chase'; }
+  }
+
+  const n = Math.max(1, Math.ceil(dt / 0.008)), h = dt / n;
+  for (let s = 0; s < n && state === 'play'; s++){
+    // player
+    if (player.prog === 0 && player.dir === NONE) playerAtCenter();
+    move(player, playerSpeed()*h, playerAtCenter);
+    if (player.dir !== NONE) player.anim += h;
+    const cx = Math.round(posX(player)), cy = Math.round(posY(player));
+    const v = coins[cy] && coins[cy][cx];
+    if (v){
+      coins[cy][cx] = 0; coinsLeft--;
+      if (v === 1){ addScore(10); SFX.coin(); burst(px(cx), py(cy), 7, ['#ffd76a','#fbb03b','#fff3b0'], 70, 0.35); }
+      else {
+        addScore(50); SFX.caffeine(); caffeineT = caffeineMax = caffeineDur(); combo = 0; bannerT = 1.3;
+        burst(px(cx), py(cy), 26, ['#f15a24','#ffb36b','#fff','#ed1e79'], 130, 0.7);
+        for (const e of enemies) if (e.state === 'chase'){ e.state = 'fright'; reverse(e); }
+      }
+      if (coinsLeft <= 0){ state = 'clear'; stateT = 2.4; SFX.clear(); addScore(500);
+        burst(px(cx), py(cy), 40, ['#29abe2','#7b5cff','#ed1e79','#f15a24','#fbb03b'], 160, 1); return; }
+    }
+    // enemies
+    for (const e of enemies){
+      e.rot += h * (e.state === 'fright' ? 0.6 : 1.8);
+      if (e.state === 'home'){ e.wait -= h; if (e.wait <= 0){ e.state = 'leave'; e.dir = bfsDir(e, EXIT.x, EXIT.y); } continue; }
+      move(e, enemySpeed(e)*h, enemyAtCenter);
+      if (e.dir !== NONE) e.look = e.dir;
+    }
+    // collisions
+    const pxp = posX(player), pyp = posY(player);
+    for (const e of enemies){
+      if (e.state === 'home' || e.state === 'return') continue;
+      const dx = posX(e) - pxp, dy = posY(e) - pyp;
+      if (dx*dx + dy*dy > 0.42) continue;
+      if (e.state === 'fright'){
+        combo++; const pts = 200 * Math.pow(2, Math.min(combo, 4) - 1); addScore(pts);
+        e.state = 'return'; SFX.eat(); freezeT = 0.35;
+        popup(px(posX(e)), py(posY(e)), String(pts), '#8ef6ff');
+        burst(px(posX(e)), py(posY(e)), 22, [e.def.color, '#3d6bff', '#fff'], 120, 0.6);
+      } else {
+        state = 'dying'; stateT = 1.7; lives--; shake = 8; SFX.die(); caffeineT = 0;
+        burst(px(pxp), py(pyp), 50, ['#29abe2','#7b5cff','#ed1e79','#f15a24','#fbb03b','#fff'], 150, 1.1);
+        return;
+      }
+    }
+  }
+}
+
+// ---------- Render ----------
+function render(){
+  ctx.setTransform(K, 0, 0, K, 0, 0);
+  if (shake > 0) ctx.translate((Math.random()-.5)*shake, (Math.random()-.5)*shake);
+  ctx.drawImage(mazeLayer, 0, 0, LW, LW);
+  if (state === 'clear' && Math.floor(stateT*6) % 2 === 0){ ctx.fillStyle = 'rgba(255,255,255,.10)'; ctx.fillRect(OX, OY, COLS*T, ROWS*T); }
+
+  // coins (spin by width)
+  const cs = SPR.coin, cw = 13;
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++){
+    const v = coins[y][x]; if (!v) continue;
+    if (v === 1){
+      const w = cw * (0.35 + 0.65*Math.abs(Math.cos(time*2.4 + (x+y)*0.55)));
+      ctx.drawImage(cs.c, px(x) - w/2, py(y) - cw/2, w, cw);
+    } else {
+      const s = 22 + Math.sin(time*6 + x)*2.2;
+      ctx.drawImage(SPR.cup.c, px(x) - s/2, py(y) - s/2, s, s);
+    }
+  }
+
+  // caffeine edge glow
+  if (caffeineT > 0){
+    const a = 0.18 + 0.08*Math.sin(time*12);
+    ctx.strokeStyle = 'rgba(241,90,36,' + a + ')'; ctx.lineWidth = 8; ctx.strokeRect(OX-4, OY-4, COLS*T+8, ROWS*T+8);
+  }
+
+  // enemies
+  for (const e of enemies){
+    let x = px(posX(e)), y = py(posY(e));
+    if (e.state === 'home') y += Math.sin(time*5 + e.def.start.x)*3;
+    if (e.state === 'return'){ drawEye(x, y, e.look, 0.9, '#fff'); ctx.globalAlpha = .25; drawRot(SPR.en[e.def.name], x, y, 28, e.rot); ctx.globalAlpha = 1; continue; }
+    let spr = SPR.en[e.def.name];
+    if (e.state === 'fright') spr = (caffeineT < 1.6 && Math.floor(time*8) % 2) ? SPR.flash : SPR.fright;
+    drawRot(spr, x, y, 30, e.rot);
+    if (e.state === 'fright'){ ctx.fillStyle = '#fff'; ctx.font = '900 8px system-ui,sans-serif'; ctx.textAlign = 'center'; ctx.fillText('x x', x, y + 3); }
+    else drawEye(x, y, e.look, 1, e.def.color);
+  }
+
+  // player
+  if (state !== 'title' && state !== 'over'){
+    const x = px(posX(player)), y = py(posY(player));
+    if (state === 'dying'){
+      const k = Math.max(0, stateT / 1.7);
+      if (k > 0.05) drawRot(SPR.player, x, y, 34*k, (1-k)*12, 1);
+    } else {
+      const d = player.dir === NONE ? lastDir : player.dir;
+      const rot = d.y !== 0 ? Math.PI/2 : 0;
+      const pulse = 1 + 0.13*Math.sin(player.anim*22);
+      if (caffeineT > 0){ ctx.globalAlpha = 0.35; drawRot(SPR.player, x - d.x*6, y - d.y*6, 34, rot, pulse); ctx.globalAlpha = 1; }
+      drawRot(SPR.player, x, y, 34, rot, pulse);
+      if (player.dir !== NONE && Math.random() < 0.5) burst(x - d.x*9, y - d.y*9, 1, caffeineT > 0 ? ['#f15a24','#ffb36b'] : ['#7b5cff','#ed1e79','#29abe2'], 18, 0.35);
+    }
+  }
+
+  // particles
+  ctx.globalCompositeOperation = 'lighter';
+  for (const q of particles){ ctx.globalAlpha = Math.max(0, q.life / q.max); ctx.fillStyle = q.c; ctx.fillRect(q.x - q.s/2, q.y - q.s/2, q.s, q.s); }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+
+  // popups
+  ctx.textAlign = 'center'; ctx.font = '900 12px ui-monospace,Menlo,Consolas,monospace';
+  for (const q of popups){ ctx.globalAlpha = 1 - q.t; ctx.fillStyle = q.color; ctx.fillText(q.text, q.x, q.y - q.t*18); }
+  ctx.globalAlpha = 1;
+
+  drawHUD();
+
+  // centre messages
+  if (state === 'ready'){
+    const big = level === 1 && score === 0 ? 'READY?' : 'LEVEL ' + level;
+    banner(big, '#ffd76a', stateT < 0.45 ? 'GO!' : (level > 1 ? TIPS[tipI % TIPS.length] : 'Collect every ICP coin'));
+  } else if (state === 'clear'){
+    banner('SUBNET CLEARED!', '#7dffb5', '+500 bonus');
+  } else if (state === 'dying' && lives <= 0 && stateT < 0.9){
+    banner('GAME OVER', '#ff4f8b', '');
+  }
+  if (bannerT > 0 && state === 'play'){
+    const a = Math.min(1, bannerT*2), sc = 1 + (1.3 - bannerT)*0.25;
+    ctx.save(); ctx.globalAlpha = a; ctx.translate(LW/2, OY + 9.5*T); ctx.scale(sc, sc);
+    ctx.font = '900 34px system-ui,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#f15a24'; ctx.shadowBlur = 16; ctx.fillStyle = '#ffb36b'; ctx.fillText('CAFFEINE!', 0, 0);
+    ctx.shadowBlur = 0; ctx.font = '700 11px system-ui,sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText('powered by Caffeine.ai — chase the bugs!', 0, 26);
+    ctx.restore();
+  }
+  if (paused){
+    ctx.fillStyle = 'rgba(6,3,15,.72)'; ctx.fillRect(0, 0, LW, LW);
+    banner('PAUSED', '#8ef6ff', isTouch ? 'Tap to resume' : 'Press any key or click to resume');
+  }
+}
+function drawRot(s, x, y, size, rot, sx){
+  ctx.save(); ctx.translate(x, y); if (rot) ctx.rotate(rot); if (sx && sx !== 1) ctx.scale(sx, 2 - sx);
+  ctx.drawImage(s.c, -size/2, -size/2, size, size); ctx.restore();
+}
+function drawEye(x, y, d, a, col){
+  ctx.globalAlpha = a; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, 4.2, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#0a0418'; ctx.beginPath(); ctx.arc(x + (d ? d.x : 0)*1.8, y + (d ? d.y : 0)*1.8, 2.1, 0, Math.PI*2); ctx.fill();
+  ctx.globalAlpha = 1;
+}
+function banner(t, col, sub){
+  const y = OY + 9.5*T;
+  ctx.fillStyle = 'rgba(6,3,15,.78)'; ctx.fillRect(OX + 1.5*T, y - 30, (COLS - 3)*T, sub ? 62 : 48);
+  ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.strokeRect(OX + 1.5*T, y - 30, (COLS - 3)*T, sub ? 62 : 48);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = '900 28px system-ui,sans-serif'; ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 12;
+  ctx.fillText(t, LW/2, y - 6); ctx.shadowBlur = 0;
+  if (sub){ ctx.font = '700 12px system-ui,sans-serif'; ctx.fillStyle = '#e9e4ff'; ctx.fillText(sub, LW/2, y + 20); }
+  ctx.textBaseline = 'alphabetic';
+}
+function drawHUD(){
+  ctx.fillStyle = 'rgba(6,3,15,.9)'; ctx.fillRect(0, 0, LW, OY - 6);
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  ctx.font = '800 9px system-ui,sans-serif'; ctx.fillStyle = '#9c8fd6';
+  ctx.fillText('SCORE', 24, 11); ctx.fillText('BEST', 150, 11); ctx.fillText('LEVEL', 262, 11);
+  ctx.font = '900 17px ui-monospace,Menlo,Consolas,monospace';
+  ctx.fillStyle = '#ffd76a'; ctx.fillText(String(score).padStart(5, '0'), 24, 26);
+  ctx.fillStyle = '#8ef6ff'; ctx.fillText(String(Math.max(hi, score)).padStart(5, '0'), 150, 26);
+  ctx.fillStyle = '#fff'; ctx.fillText(String(level), 262, 26);
+  if (state !== 'title'){
+    for (let i = 0; i < Math.min(lives, 6); i++) ctx.drawImage(SPR.life.c, 300 + i*22, 15, 20, 20);
+  }
+  if (caffeineT > 0){ // caffeine meter
+    const w = 120 * (caffeineT / caffeineMax);
+    ctx.fillStyle = 'rgba(241,90,36,.25)'; ctx.fillRect(OX, OY - 7, 120, 3);
+    ctx.fillStyle = '#ffb36b'; ctx.fillRect(OX, OY - 7, w, 3);
+  }
+  ctx.textBaseline = 'alphabetic';
+}
+
+// ---------- Input ----------
+const KEYMAP = {ArrowUp:0, KeyW:0, ArrowLeft:1, KeyA:1, ArrowDown:2, KeyS:2, ArrowRight:3, KeyD:3};
+function steer(i){
+  const d = DIRS[i]; queued = d;
+  if (paused){ setPaused(false); return; }
+  if (state === 'play' && player.dir !== NONE && isRev(d, player.dir)) reverse(player);
+}
+window.addEventListener('keydown', e => {
+  if (e.code in KEYMAP){ e.preventDefault(); steer(KEYMAP[e.code]); return; }
+  if (e.code === 'KeyM'){ setMuted(!muted); return; }
+  if (e.code === 'KeyP' || e.code === 'Escape'){ if (state === 'play' || state === 'ready') setPaused(!paused); return; }
+  if (paused){ setPaused(false); return; }
+  if ((e.code === 'Space' || e.code === 'Enter') && (state === 'title' || state === 'over') && document.activeElement.tagName !== 'BUTTON' && document.activeElement.tagName !== 'A'){
+    e.preventDefault(); startGame();
+  }
+}, {passive:false});
+// swipe anywhere on the playfield (keep swiping without lifting)
+let sw = null;
+cv.addEventListener('pointerdown', e => {
+  audioInit();
+  if (paused){ setPaused(false); return; }
+  sw = {x: e.clientX, y: e.clientY}; try { cv.setPointerCapture(e.pointerId); } catch(_){}
+});
+cv.addEventListener('pointermove', e => {
+  if (!sw) return;
+  const dx = e.clientX - sw.x, dy = e.clientY - sw.y, th = Math.max(14, S * 0.035);
+  if (Math.abs(dx) < th && Math.abs(dy) < th) return;
+  steer(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 3 : 1) : (dy > 0 ? 2 : 0));
+  sw = {x: e.clientX, y: e.clientY};
+});
+const endSw = () => { sw = null; };
+cv.addEventListener('pointerup', endSw); cv.addEventListener('pointercancel', endSw);
+// d-pad
+for (const b of dpad.querySelectorAll('button')){
+  const i = +b.dataset.d;
+  b.addEventListener('pointerdown', e => { e.preventDefault(); audioInit(); b.classList.add('on'); steer(i); });
+  const off = () => b.classList.remove('on');
+  b.addEventListener('pointerup', off); b.addEventListener('pointerleave', off); b.addEventListener('pointercancel', off);
+}
+document.addEventListener('touchmove', e => { if (e.target.closest && !e.target.closest('.links')) e.preventDefault(); }, {passive:false});
+
+$('btnPlay').addEventListener('click', () => startGame());
+$('btnAgain').addEventListener('click', () => startGame());
+$('btnMute').addEventListener('click', () => { audioInit(); setMuted(!muted); });
+$('btnMute2').addEventListener('click', () => { audioInit(); setMuted(!muted); });
+const dpadLabel = () => { $('btnDpad').textContent = 'D-PAD: ' + dpadPref.toUpperCase(); };
+$('btnDpad').addEventListener('click', () => {
+  dpadPref = dpadPref === 'auto' ? 'on' : dpadPref === 'on' ? 'off' : 'auto';
+  store.set('icpcc.dpad', dpadPref); dpadLabel(); layout();
+});
+if (isTouch){
+  $('btnDpad').classList.remove('hidden'); dpadLabel();
+  $('helpText').innerHTML = 'Swipe on the maze to steer (or use the d-pad)<br>Grab a <b>Caffeine</b> cup to chase the bugs';
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) setPaused(true); });
+window.addEventListener('blur', () => setPaused(true));
+window.addEventListener('resize', layout);
+
+// ---------- Boot ----------
+let last = performance.now();
+function frame(now){
+  requestAnimationFrame(frame);
+  let dt = (now - last) / 1000; last = now;
+  if (!(dt > 0)) dt = 0; if (dt > 0.05) dt = 0.05;
+  update(dt); render();
+}
+layout(); setMuted(muted); toTitle();
+if (params.has('autostart')) startGame(true);   // handy for previews/tests (no sound without a gesture)
+
+// ---------- Test hook (?sim=SECONDS[&bot]) — fast-forwards logic for automated checks; unused in normal play ----------
+function autopilot(){
+  const p = player, danger = new Uint8Array(COLS*ROWS);
+  for (const e of enemies) if (e.state === 'chase' || e.state === 'leave'){
+    const ex = Math.round(posX(e)), ey = Math.round(posY(e));
+    for (let y = ey-2; y <= ey+2; y++) for (let x = ex-2; x <= ex+2; x++) if (x >= 0 && y >= 0 && x < COLS && y < ROWS) danger[x + y*COLS] = 1;
+  }
+  const sx = p.prog > 0 ? p.tx + p.dir.x : p.tx, sy = p.prog > 0 ? p.ty + p.dir.y : p.ty;
+  const seen = new Uint8Array(COLS*ROWS), first = new Int8Array(COLS*ROWS).fill(-1), q = [sx + sy*COLS]; seen[q[0]] = 1;
+  for (let h = 0; h < q.length; h++){
+    const i = q[h], x = i % COLS, y = (i / COLS) | 0;
+    if (h && coins[y][x]){ queued = DIRS[first[i]]; return; }
+    for (let d = 0; d < 4; d++){ const nx = x + DIRS[d].x, ny = y + DIRS[d].y, ni = nx + ny*COLS;
+      if (!canEnter(p, nx, ny) || seen[ni] || (danger[ni] && h)) continue; seen[ni] = 1; first[ni] = first[i] === -1 ? d : first[i]; q.push(ni); }
+  }
+}
+if (params.has('sim')){
+  if (state === 'title') startGame(true);
+  const n = (+params.get('sim') || 10) * 60, bot = params.has('bot');
+  let maxLevel = 1;
+  for (let i = 0; i < n && state !== 'over'; i++){ if (bot && state === 'play') autopilot(); update(1/60); maxLevel = Math.max(maxLevel, level); }
+  console.log('SIM state=' + state + ' score=' + score + ' level=' + level + ' maxLevel=' + maxLevel + ' lives=' + lives + ' coinsLeft=' + coinsLeft);
+}
+requestAnimationFrame(t => { last = t; frame(t); });
+window.__icpcc = { get state(){ return state; }, get score(){ return score; }, get level(){ return level; } };
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Netlify / Cloudflare Pages header rules. Allows X to frame the player.
+# (Do NOT add X-Frame-Options: DENY or SAMEORIGIN.)
+/*
+  Content-Security-Policy: frame-ancestors 'self' https://x.com https://*.x.com https://twitter.com https://*.twitter.com https://platform.twitter.com
+  Cache-Control: public, max-age=300

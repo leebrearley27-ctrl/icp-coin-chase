@@ -1,0 +1,64 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#06030f}canvas{display:block}</style></head>
+<body><canvas id="c" width="1200" height="1200"></canvas>
+<script>
+// Renders og.png (1200x1200). Regenerate: google-chrome --headless=new --window-size=1200,1200 --screenshot=og.png src/og-source.html
+const c = document.getElementById('c'), g = c.getContext('2d'), W = 1200;
+const F = '"Bricolage Grotesque","Big Shoulders Display",system-ui,sans-serif';
+function inf(w){ const a=w/2,h=w*.34; g.beginPath(); g.moveTo(0,0); g.bezierCurveTo(a*.36,-h,a,-h,a,0); g.bezierCurveTo(a,h,a*.36,h,0,0);
+  g.bezierCurveTo(-a*.36,-h,-a,-h,-a,0); g.bezierCurveTo(-a,h,-a*.36,h,0,0); g.closePath(); }
+function grad(w){ const r=g.createLinearGradient(-w/2,0,w/2,0); r.addColorStop(0,'#29abe2'); r.addColorStop(.42,'#7b3fe4'); r.addColorStop(.58,'#ed1e79'); r.addColorStop(.8,'#f15a24'); r.addColorStop(1,'#fbb03b'); return r; }
+function coin(x,y,r,sx){ g.save(); g.translate(x,y); g.scale(sx||1,1);
+  const rg=g.createRadialGradient(-r*.3,-r*.3,r*.1,0,0,r); rg.addColorStop(0,'#fff3b0'); rg.addColorStop(.55,'#f7b733'); rg.addColorStop(1,'#a35d00');
+  g.shadowColor='rgba(251,176,59,.9)'; g.shadowBlur=r*.8; g.fillStyle=rg; g.beginPath(); g.arc(0,0,r,0,7); g.fill(); g.shadowBlur=0;
+  g.fillStyle='#1b0d33'; g.beginPath(); g.arc(0,0,r*.76,0,7); g.fill(); g.lineWidth=r*.2; g.lineCap='round'; g.strokeStyle=grad(r*1.25); inf(r*1.25); g.stroke(); g.restore(); }
+function cup(x,y,s){ g.save(); g.translate(x,y); const u=s/40; g.scale(u,u); g.translate(-20,-20); g.lineCap='round';
+  g.strokeStyle='#ffd7b0'; g.lineWidth=2.2; g.beginPath(); g.moveTo(14,6); g.quadraticCurveTo(11,9,14,12); g.moveTo(20,4); g.quadraticCurveTo(17,8,20,12); g.moveTo(26,6); g.quadraticCurveTo(23,9,26,12); g.stroke();
+  g.fillStyle='#f15a24'; g.beginPath(); g.moveTo(7,16); g.lineTo(29,16); g.lineTo(26.5,33); g.quadraticCurveTo(26,36.4,22.5,36.4); g.lineTo(13.5,36.4); g.quadraticCurveTo(10,36.4,9.5,33); g.closePath(); g.fill();
+  g.strokeStyle='#fff'; g.lineWidth=2.6; g.beginPath(); g.moveTo(8.4,21); g.lineTo(27.6,21); g.stroke();
+  g.strokeStyle='#f15a24'; g.lineWidth=3.2; g.beginPath(); g.moveTo(28.5,19.5); g.lineTo(31.5,19.5); g.arc(31.5,23.5,4,-Math.PI/2,Math.PI/2); g.lineTo(28,27.5); g.stroke(); g.restore(); }
+function bug(x,y,r,col,rot,look){ g.save(); g.translate(x,y); g.save(); g.rotate(rot);
+  g.shadowColor=col; g.shadowBlur=r*.8; g.fillStyle='#120626'; g.strokeStyle=col; g.lineWidth=r*.22; g.lineJoin='round';
+  g.beginPath(); for(let i=0;i<6;i++){const a=Math.PI/6+i*Math.PI/3; g[i?'lineTo':'moveTo'](Math.cos(a)*r,Math.sin(a)*r);} g.closePath(); g.fill(); g.stroke(); g.shadowBlur=0;
+  g.lineWidth=r*.15; g.lineCap='round'; for(let i=0;i<6;i++){const a=i*Math.PI/3; g.beginPath(); g.moveTo(Math.cos(a)*r,Math.sin(a)*r); g.lineTo(Math.cos(a)*r*1.3,Math.sin(a)*r*1.3); g.stroke();}
+  g.restore(); g.fillStyle='#fff'; g.beginPath(); g.arc(0,0,r*.4,0,7); g.fill(); g.fillStyle='#0a0418'; g.beginPath(); g.arc(look*r*.17,0,r*.2,0,7); g.fill(); g.restore(); }
+
+// background
+const bg=g.createRadialGradient(600,520,60,600,600,900); bg.addColorStop(0,'#2a0f5c'); bg.addColorStop(1,'#04020b'); g.fillStyle=bg; g.fillRect(0,0,W,W);
+// neon maze fragment (original)
+const T=60, M=["####################","#.......#....#.....#","#.###.#.#.##.#.###.#","#.#...#......#...#.#","#.#.#####.##.###..##","#..................#","##.##.#.####.#.##.##","#.....#......#.....#","#.###.#.####.#.###.#","#..................#","#.##.####..####.##.#","#..................#","#.#.##.#.##.#.##.#.#","#..................#","#.###.#.####.#.###.#","#.....#......#.....#","#.##.##.####.##.##.#","#..................#","#.#.#.#.#..#.#.#.#.#","####################"];
+const isW=(x,y)=>x<0||y<0||x>=20||y>=20||M[y][x]==='#';
+g.save(); g.globalAlpha=.55; g.strokeStyle='#7b5cff'; g.shadowColor='#7b5cff'; g.shadowBlur=14; g.lineWidth=4; g.beginPath();
+for(let y=0;y<20;y++)for(let x=0;x<20;x++)if(isW(x,y)){const px=x*T,py=y*T;
+  if(!isW(x,y-1)){g.moveTo(px,py);g.lineTo(px+T,py);} if(!isW(x,y+1)){g.moveTo(px,py+T);g.lineTo(px+T,py+T);}
+  if(!isW(x-1,y)){g.moveTo(px,py);g.lineTo(px,py+T);} if(!isW(x+1,y)){g.moveTo(px+T,py);g.lineTo(px+T,py+T);} }
+g.stroke(); g.restore();
+// darken centre for legibility
+const vg=g.createRadialGradient(600,560,100,600,560,640); vg.addColorStop(0,'rgba(6,3,15,.88)'); vg.addColorStop(1,'rgba(6,3,15,.35)'); g.fillStyle=vg; g.fillRect(0,0,W,W);
+
+// coin trail + runner + bugs (gameplay vignette)
+for(let i=0;i<9;i++){ coin(215+i*68, 910, 22, .45+.55*Math.abs(Math.cos(i*.9))); }
+g.save(); g.translate(120,910); g.shadowColor='#ff4fa3'; g.shadowBlur=30; g.lineCap=g.lineJoin='round'; g.lineWidth=16; g.strokeStyle=grad(120); inf(120); g.stroke(); g.shadowBlur=0; g.lineWidth=4; g.strokeStyle='rgba(255,255,255,.85)'; inf(120); g.stroke(); g.restore();
+for(let i=0;i<14;i++){ g.fillStyle=['#29abe2','#7b5cff','#ed1e79','#fbb03b'][i%4]; g.globalAlpha=.7; g.fillRect(30-i*2+Math.sin(i)*8, 900+Math.cos(i*2)*22, 8,8);} g.globalAlpha=1;
+bug(870,910,38,'#ff2e63',.2,-1); bug(990,910,38,'#00e5ff',.5,-1); bug(1100,910,38,'#b84dff',.1,-1);
+// floating coins
+[[150,180,46],[1060,210,40],[1000,690,34],[200,700,30],[1090,470,26],[110,470,24]].forEach(([x,y,r],i)=>coin(x,y,r,.6+.4*Math.abs(Math.cos(i))));
+
+// big ICP mark
+g.save(); g.translate(600,250); g.shadowColor='#ed1e79'; g.shadowBlur=50; g.lineCap=g.lineJoin='round'; g.lineWidth=34; g.strokeStyle=grad(420); inf(420); g.stroke();
+g.shadowBlur=0; g.lineWidth=7; g.strokeStyle='rgba(255,255,255,.6)'; inf(420); g.stroke(); g.restore();
+
+// title
+g.textAlign='center'; g.textBaseline='alphabetic';
+g.font='900 210px '+F; const tg=g.createLinearGradient(260,0,940,0); tg.addColorStop(0,'#29abe2'); tg.addColorStop(.35,'#7b5cff'); tg.addColorStop(.6,'#ed1e79'); tg.addColorStop(.82,'#f15a24'); tg.addColorStop(1,'#fbb03b');
+g.shadowColor='rgba(123,92,255,.8)'; g.shadowBlur=30; g.fillStyle=tg; g.fillText('ICP',600,560);
+g.font='800 104px '+F; g.fillText('COIN CHASE',600,670); g.shadowBlur=0;
+g.font='800 50px '+F; g.fillStyle='#ffd76a'; g.fillText('Collect the ICP coins',600,750);
+// play badge
+g.fillStyle='rgba(255,255,255,.08)'; g.strokeStyle='#ffd0e6'; g.lineWidth=3; g.beginPath(); g.roundRect(330,1010,540,84,42); g.fill(); g.stroke();
+const pb=g.createLinearGradient(330,0,870,0); pb.addColorStop(0,'#7b5cff'); pb.addColorStop(.55,'#ed1e79'); pb.addColorStop(1,'#f15a24'); g.fillStyle=pb; g.beginPath(); g.roundRect(334,1014,532,76,38); g.fill();
+g.fillStyle='#fff'; g.font='900 42px '+F; g.fillText('▶  PLAY IN YOUR FEED',600,1067);
+// caffeine line
+cup(330,1150,64); g.textAlign='left'; g.font='700 40px '+F; g.fillStyle='#ffe2c4'; g.fillText('Fuelled by Caffeine.ai',372,1164);
+g.textAlign='right'; g.font='600 22px '+F; g.fillStyle='#8f86b5'; g.fillText('Fan-made · not an official DFINITY or Caffeine product',1180,40);
+document.title='done';
+</script></body></html>
